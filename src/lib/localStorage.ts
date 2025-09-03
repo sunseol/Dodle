@@ -1,11 +1,14 @@
 const gameStateKey = 'gameState'
 
 type StoredGameState = {
-  guesses: string[][]
+  guesses: string[] | string[][]
   solution: string
 }
 
-export const saveGameStateToLocalStorage = (gameState: StoredGameState) => {
+export const saveGameStateToLocalStorage = (gameState: {
+  guesses: string[]
+  solution: string
+}) => {
   localStorage.setItem(gameStateKey, JSON.stringify(gameState))
 }
 

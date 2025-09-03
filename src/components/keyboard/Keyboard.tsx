@@ -9,12 +9,19 @@ type Props = {
   onChar: (value: string) => void
   onDelete: () => void
   onEnter: () => void
-  guesses: string[][]
+  guesses: string[]
+  solution: string
 }
 
-export const Keyboard = ({ onChar, onDelete, onEnter, guesses }: Props) => {
+export const Keyboard = ({
+  onChar,
+  onDelete,
+  onEnter,
+  guesses,
+  solution,
+}: Props) => {
   const { t } = useTranslation()
-  const charStatuses = getStatuses(guesses)
+  const charStatuses = getStatuses(guesses, solution)
 
   const onClick = (value: KeyValue) => {
     if (value === 'ENTER') {

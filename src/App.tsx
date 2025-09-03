@@ -9,7 +9,7 @@ import { AboutModal } from './components/modals/AboutModal'
 import { InfoModal } from './components/modals/InfoModal'
 import { StatsModal } from './components/modals/StatsModal'
 import { TranslateModal } from './components/modals/TranslateModal'
-import { isWordInWordList, isWinningWord, solution } from './lib/words'
+import { isWordInWordList, isWinningWord, getWordOfDay } from './lib/words'
 import { addStatsForCompletedGame, loadStats } from './lib/stats'
 import {
   loadGameStateFromLocalStorage,
@@ -21,11 +21,12 @@ import ReactGA from 'react-ga'
 import '@bcgov/bc-sans/css/BCSans.css'
 import './i18n'
 import { withTranslation, WithTranslation } from 'react-i18next'
+import * as Hangul from 'hangul-js'
 
 const ALERT_TIME_MS = 2000
 
 const App: React.FC<WithTranslation> = ({ t, i18n }) => {
-  const [currentGuess, setCurrentGuess] = useState<Array<string>>([])
+  const [currentGuess, setCurrentGuess] = useState('')
   const [isGameWon, setIsGameWon] = useState(false)
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false)
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false)
@@ -35,21 +36,36 @@ const App: React.FC<WithTranslation> = ({ t, i18n }) => {
   const [isWordNotFoundAlertOpen, setIsWordNotFoundAlertOpen] = useState(false)
   const [isGameLost, setIsGameLost] = useState(false)
   const [successAlert, setSuccessAlert] = useState('')
-  const [guesses, setGuesses] = useState<string[][]>(() => {
+
+  const [wordLength, setWordLength] = useState(CONFIG.wordLength)
+  const [solution, setSolution] = useState('')
+  const [solutionIndex, setSolutionIndex] = useState(0)
+  const [tomorrow, setTomorrow] = useState(0)
+
+  useEffect(() => {
+    const { solution, solutionIndex, tomorrow } = getWordOfDay(wordLength)
+    setSolution(solution)
+    setSolutionIndex(solutionIndex)
+    setTomorrow(tomorrow)
+  }, [wordLength])
+
+  const [guesses, setGuesses] = useState<string[]>(() => {
     const loaded = loadGameStateFromLocalStorage()
     if (loaded?.solution !== solution) {
       return []
     }
-    const gameWasWon = loaded.guesses
-      .map((guess) => guess.join(''))
-      .includes(solution)
+    // Migration from old string[][] state
+    const migratedGuesses = loaded.guesses.map((guess) =>
+      Array.isArray(guess) ? guess.join('') : guess
+    )
+    const gameWasWon = migratedGuesses.includes(solution)
     if (gameWasWon) {
       setIsGameWon(true)
     }
-    if (loaded.guesses.length === CONFIG.tries && !gameWasWon) {
+    if (migratedGuesses.length === CONFIG.tries && !gameWasWon) {
       setIsGameLost(true)
     }
-    return loaded.guesses
+    return migratedGuesses
   })
   const TRACKING_ID = CONFIG.googleAnalytics
 
@@ -60,8 +76,10 @@ const App: React.FC<WithTranslation> = ({ t, i18n }) => {
   const [stats, setStats] = useState(() => loadStats())
 
   useEffect(() => {
-    saveGameStateToLocalStorage({ guesses, solution })
-  }, [guesses])
+    if (solution) {
+      saveGameStateToLocalStorage({ guesses, solution })
+    }
+  }, [guesses, solution])
 
   useEffect(() => {
     if (isGameWon) {
@@ -83,45 +101,53 @@ const App: React.FC<WithTranslation> = ({ t, i18n }) => {
 
   const onChar = (value: string) => {
     if (
-      currentGuess.length < CONFIG.wordLength &&
+      Hangul.disassemble(currentGuess).length < wordLength &&
       guesses.length < CONFIG.tries &&
       !isGameWon
     ) {
-      let newGuess = currentGuess.concat([value])
+      const newGuess = Hangul.assemble([
+        ...Hangul.disassemble(currentGuess),
+        value,
+      ])
       setCurrentGuess(newGuess)
     }
   }
 
   const onDelete = () => {
-    setCurrentGuess(currentGuess.slice(0, -1))
+    setCurrentGuess(
+      Hangul.assemble(Hangul.disassemble(currentGuess).slice(0, -1))
+    )
   }
 
   const onEnter = () => {
     if (isGameWon || isGameLost) {
       return
     }
-    if (!(currentGuess.length === CONFIG.wordLength)) {
+    if (
+      Hangul.disassemble(currentGuess).length !== wordLength ||
+      !Hangul.isComplete(currentGuess)
+    ) {
       setIsNotEnoughLetters(true)
       return setTimeout(() => {
         setIsNotEnoughLetters(false)
       }, ALERT_TIME_MS)
     }
 
-    if (!isWordInWordList(currentGuess.join(''))) {
+    if (!isWordInWordList(currentGuess)) {
       setIsWordNotFoundAlertOpen(true)
       return setTimeout(() => {
         setIsWordNotFoundAlertOpen(false)
       }, ALERT_TIME_MS)
     }
-    const winningWord = isWinningWord(currentGuess.join(''))
+    const winningWord = isWinningWord(currentGuess, solution)
 
     if (
-      currentGuess.length === CONFIG.wordLength &&
+      Hangul.disassemble(currentGuess).length === wordLength &&
       guesses.length < CONFIG.tries &&
       !isGameWon
     ) {
       setGuesses([...guesses, currentGuess])
-      setCurrentGuess([])
+      setCurrentGuess('')
 
       if (winningWord) {
         setStats(addStatsForCompletedGame(stats, guesses.length))
@@ -134,6 +160,16 @@ const App: React.FC<WithTranslation> = ({ t, i18n }) => {
       }
     }
   }
+
+  const handleWordLength = (length: number) => {
+    if (wordLength === length) return
+    setWordLength(length)
+    setGuesses([])
+    setCurrentGuess('')
+    setIsGameWon(false)
+    setIsGameLost(false)
+  }
+
   let translateElement = <div></div>
   if (CONFIG.availableLangs.length > 1) {
     translateElement = (
@@ -147,7 +183,7 @@ const App: React.FC<WithTranslation> = ({ t, i18n }) => {
   return (
     <div className="py-8 max-w-7xl mx-auto sm:px-6 lg:px-8">
       <div className="flex w-80 mx-auto items-center mb-8">
-        <h1 className="text-xl grow font-bold">
+        <h1 className="text-xl grow font-bold whitespace-nowrap">
           {t('gameName', { language: CONFIG.language })}
         </h1>
         {translateElement}
@@ -160,12 +196,35 @@ const App: React.FC<WithTranslation> = ({ t, i18n }) => {
           onClick={() => setIsStatsModalOpen(true)}
         />
       </div>
-      <Grid guesses={guesses} currentGuess={currentGuess} />
+
+      <div className="flex justify-center mb-2">
+        {CONFIG.availableWordLengths.map((length) => (
+          <button
+            key={length}
+            onClick={() => handleWordLength(length)}
+            className={`px-4 py-2 text-sm font-medium rounded-md mx-1 ${
+              wordLength === length
+                ? 'bg-indigo-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            {length} 자모
+          </button>
+        ))}
+      </div>
+
+      <Grid
+        guesses={guesses}
+        currentGuess={currentGuess}
+        wordLength={wordLength}
+        solution={solution}
+      />
       <Keyboard
         onChar={onChar}
         onDelete={onDelete}
         onEnter={onEnter}
         guesses={guesses}
+        solution={solution}
       />
       <TranslateModal
         isOpen={isI18nModalOpen}
@@ -174,6 +233,7 @@ const App: React.FC<WithTranslation> = ({ t, i18n }) => {
       <InfoModal
         isOpen={isInfoModalOpen}
         handleClose={() => setIsInfoModalOpen(false)}
+        wordLength={wordLength}
       />
       <StatsModal
         isOpen={isStatsModalOpen}
@@ -186,6 +246,9 @@ const App: React.FC<WithTranslation> = ({ t, i18n }) => {
           setSuccessAlert(t('gameCopied'))
           return setTimeout(() => setSuccessAlert(''), ALERT_TIME_MS)
         }}
+        solution={solution}
+        solutionIndex={solutionIndex}
+        tomorrow={tomorrow}
       />
       <AboutModal
         isOpen={isAboutModalOpen}

@@ -1,6 +1,6 @@
 {
     "about": "About this game",
-    "gameName": "Word Guessing Game - {{language}}",
+    "gameName": "도토리 단어 추리게임 - {{language}}",
     "enterKey": "Enter",
     "deleteKey": "Delete",
     "notEnoughLetters": "Not enough letters",

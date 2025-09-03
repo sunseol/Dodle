@@ -1,0 +1,103 @@
+{
+    "about": "게임에 대하여",
+    "gameName": "단어 추측 게임 - {{language}}",
+    "enterKey": "입력",
+    "deleteKey": "삭제",
+    "notEnoughLetters": "글자 수가 부족합니다",
+    "wordNotFound": "단어를 찾을 수 없습니다",
+    "solution": "정답은 {{solution}} 입니다",
+    "gameCopied": "게임이 클립보드에 복사되었습니다",
+    "howToPlay": "게임 방법",
+    "instructions": "{{tries}}번 안에 단어를 맞추세요. 추측한 단어를 입력하면, 각 글자 타일의 색상이 바뀌면서 정답과 얼마나 근접했는지 알려줍니다.",
+    "pickYourLanguage": "언어 선택",
+    "correctSpotInstructions": "글자 '안'은 단어에 포함되어 있고 올바른 위치에 있습니다.",
+    "wrongSpotInstructions": "글자 '하'는 단어에 포함되어 있지만 잘못된 위치에 있습니다.",
+    "notInWordInstructions": "글자 '요'는 단어 어느 곳에도 포함되어 있지 않습니다.",
+    "guessDistribution": "추측 분포",
+    "statistics": "통계",
+    "totalTries": "총 시도",
+    "successRate": "성공률",
+    "currentStreak": "현재 연승",
+    "bestStreak": "최고 연승",
+    "newWordCountdown": "다음 단어까지 남은 시간",
+    "share": "공유하기",
+    "winMessages": [
+        "정말 잘했어요!",
+        "멋져요!",
+        "성공입니다!"
+    ],
+    "firstExampleWord": [{
+            "letter": "안",
+            "highlight": true
+        },
+        {
+            "letter": "녕",
+            "highlight": false
+        },
+        {
+            "letter": "하",
+            "highlight": false
+        },
+        {
+            "letter": "세",
+            "highlight": false
+        },
+        {
+            "letter": "요",
+            "highlight": false
+        }
+    ],
+    "secondExampleWord": [{
+            "letter": "반",
+            "highlight": false
+        },
+        {
+            "letter": "갑",
+            "highlight": false
+        },
+        {
+            "letter": "습",
+            "highlight": true
+        },
+        {
+            "letter": "니",
+            "highlight": false
+        },
+        {
+            "letter": "다",
+            "highlight": false
+        }
+    ],
+    "thirdExampleWord": [{
+            "letter": "여",
+            "highlight": false
+        },
+        {
+            "letter": "섯",
+            "highlight": false
+        },
+        {
+            "letter": "글",
+            "highlight": false
+        },
+        {
+            "letter": "자",
+            "highlight": true
+        },
+        {
+            "letter": "네",
+            "highlight": false
+        }
+    ],
+    "aboutAuthorSentence": "이것은 <3>{{author}}</3>에 의해 {{language}}로 각색된 오픈 소스 단어 추측 게임입니다.",
+    "aboutCodeSentence": "<1>Hannah Park의 원본 코드</1>를 확인하거나 <5>Aidan Pine의 포크</5>를 살펴보고 다른 언어로 사용자 정의하십시오!",
+    "aboutDataSentence": "이 게임의 단어는 <1>{{wordListSource}}</1>에서 가져왔습니다.",
+    "aboutOriginalSentence": "원본 게임은 <1>여기</1>에서 플레이할 수 있습니다.",
+    "languages": {
+        "en": "English",
+        "es": "Español",
+        "sw": "Kiswahili",
+        "zh": "中文",
+        "ko": "한국어"
+    }
+}

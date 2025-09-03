@@ -1,18 +1,19 @@
-import { solution } from './words'
 import { ORTHOGRAPHY } from '../constants/orthography'
-import { ORTHOGRAPHY_PATTERN } from './tokenizer'
+import * as Hangul from 'hangul-js'
 
 export type CharStatus = 'absent' | 'present' | 'correct'
 
 export type CharValue = typeof ORTHOGRAPHY[number]
 
 export const getStatuses = (
-  guesses: string[][]
+  guesses: string[],
+  solution: string
 ): { [key: string]: CharStatus } => {
   const charObj: { [key: string]: CharStatus } = {}
-  const solutionChars = solution.split(ORTHOGRAPHY_PATTERN).filter((i) => i)
+  const solutionChars = Hangul.disassemble(solution)
+
   guesses.forEach((word) => {
-    word.forEach((letter, i) => {
+    Hangul.disassemble(word).forEach((letter, i) => {
       if (!solutionChars.includes(letter)) {
         // make status absent
         return (charObj[letter] = 'absent')
@@ -33,13 +34,16 @@ export const getStatuses = (
   return charObj
 }
 
-export const getGuessStatuses = (guess: string[]): CharStatus[] => {
-  const splitSolution = solution.split(ORTHOGRAPHY_PATTERN).filter((i) => i)
-  const splitGuess = guess
+export const getGuessStatuses = (
+  guess: string,
+  solution: string
+): CharStatus[] => {
+  const splitSolution = Hangul.disassemble(solution)
+  const splitGuess = Hangul.disassemble(guess)
 
   const solutionCharsTaken = splitSolution.map((_) => false)
 
-  const statuses: CharStatus[] = Array.from(Array(guess.length))
+  const statuses: CharStatus[] = Array.from(Array(splitGuess.length))
 
   // handle all correct cases first
   splitGuess.forEach((letter, i) => {

@@ -7,6 +7,7 @@ import 'i18next'
 type Props = {
   isOpen: boolean
   handleClose: () => void
+  wordLength: number
 }
 
 interface Letter {
@@ -14,7 +15,7 @@ interface Letter {
   highlight: boolean
 }
 
-export const InfoModal = ({ isOpen, handleClose }: Props) => {
+export const InfoModal = ({ isOpen, handleClose, wordLength }: Props) => {
   const { t } = useTranslation()
   const firstExampleWord: Letter[] = t('firstExampleWord', {
     returnObjects: true,

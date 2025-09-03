@@ -1,8 +1,13 @@
 import { getGuessStatuses } from './statuses'
-import { solutionIndex } from './words'
 import { CONFIG } from '../constants/config'
+import * as Hangul from 'hangul-js'
 
-export const shareStatus = (guesses: string[][], lost: boolean) => {
+export const shareStatus = (
+  guesses: string[],
+  lost: boolean,
+  solution: string,
+  solutionIndex: number
+) => {
   navigator.clipboard.writeText(
     CONFIG.language +
       solutionIndex +
@@ -11,18 +16,19 @@ export const shareStatus = (guesses: string[][], lost: boolean) => {
       '/' +
       CONFIG.tries.toString() +
       '\n\n' +
-      generateEmojiGrid(guesses) +
+      generateEmojiGrid(guesses, solution) +
       '\n\n' +
       window.location.href.replace(`${window.location.protocol}//`, '')
   )
 }
 
-export const generateEmojiGrid = (guesses: string[][]) => {
+export const generateEmojiGrid = (guesses: string[], solution: string) => {
   return guesses
     .map((guess) => {
-      const status = getGuessStatuses(guess)
-      return guess
-        .map((letter, i) => {
+      const status = getGuessStatuses(guess, solution)
+      const splitGuess = Hangul.disassemble(guess)
+      return splitGuess
+        .map((_, i) => {
           switch (status[i]) {
             case 'correct':
               return '🟩'

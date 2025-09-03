@@ -1,13 +1,15 @@
 import { Cell } from './Cell'
-import { CONFIG } from '../../constants/config'
+import * as Hangul from 'hangul-js';
+
 
 type Props = {
-  guess: string[]
+  guess: string
+  wordLength: number
 }
 
-export const CurrentRow = ({ guess }: Props) => {
-  const splitGuess = guess
-  const emptyCells = Array.from(Array(CONFIG.wordLength - splitGuess.length))
+export const CurrentRow = ({ guess, wordLength }: Props) => {
+  const splitGuess = Hangul.disassemble(guess)
+  const emptyCells = Array.from(Array(wordLength - splitGuess.length))
 
   return (
     <div className="flex justify-center mb-1">
